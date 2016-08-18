@@ -1,0 +1,117 @@
+<script>
+  VA.ValidationBehavior = {
+    
+    observers: [
+      '_validateByPath(data.*)'
+    ],
+    
+    properties: {
+      
+      data: {
+        type: Object
+      },
+      
+      fields: {
+        type: Object,
+        readOnly: true
+      },
+      
+      valid: {
+        notify: true,
+        type: Boolean,
+        value: false
+      },
+      
+      validation: {
+        notify: true,
+        type: Object,
+        value: function () {
+          return {};
+        }
+      },
+      
+      errorMessages: {
+        notify: true,
+        type: Object,
+        value: function () {
+          return {};
+        }
+      }
+    },
+    
+    ready: function () {
+      if (this.fields) {
+        for (var field in this.fields) {
+          this.validation[field] = false;
+          this.errorMessages[field] = null;
+        }
+      }
+    },
+    
+    reset: function () {
+      this.valid = false;
+    },
+    
+    validate: function (field, value) {
+      var result;
+      var field = this.fields[field];
+      
+      if (!field) {
+        throw new Error("There is no rule for '" + field + "'");
+      }
+      
+      var target = this.data[field];
+      
+      if (field.required) {
+        result = target !== undefined && target !== null;
+      }
+      
+      if (result && !field.empty) {
+        result = target !== '';
+      }
+      
+      /* not rules implemented yet...
+      if (result && field.rules) {
+        for (var i in field.rules) {
+        }
+      }
+      */
+      
+      this.set('validation.' + field, result);
+    },
+    
+    _validateByPath: function (data) {
+      var matched;
+      
+      if (data.path === 'data') {
+        Object.getOwnPropertyNames(this.fields).forEach(function (key) {
+          var value = this.get('data.' + key);
+          if (value) {
+            this.validate(key, value);
+          }
+        }.bind(this));
+      } else {
+        matched = data.path.match('^data\.(.*)');
+        var key = matched[1];
+        var value = this.get(matched[0]);
+        if (this.fields.hasOwnProperty(key) && value) {
+          this.validate(key, value);
+          this.valid = this._validAll();
+        }
+      }
+    },
+    
+    _validAll: function () {
+      var keys = Object.getOwnPropertyNames(this.validation);
+      
+      for(var key in this.validation) {
+        if (!this.validation[key]) {
+          return false;
+        }
+      }
+      
+      return true;
+    }
+      
+  };
+</script>
