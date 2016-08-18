@@ -1,0 +1,16 @@
+{
+  "name": "va-validation",
+  "version": "0.0.1",
+  "description": "A web component which supports data validation",
+  "main": [
+    "va-validation-behavior.html"
+  ],
+  "license" : "MIT",
+  "dependencies": {
+    "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0",
+    "polymer": "polymer/polymer#^1.6.0"
+  },
+  "devDependencies": {
+    "web-component-tester": "^4.0.0"
+  }
+}
