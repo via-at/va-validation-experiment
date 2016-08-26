@@ -47,7 +47,11 @@
     ready: function () {
       if (this.fields) {
         for (var field in this.fields) {
-          this.validation[field] = false;
+          if (this.fields[field].empty === true) {
+            this.validation[field] = true;
+          } else {
+            this.validation[field] = false;
+          }
           this.errorMessages[field] = null;
         }
       }
@@ -79,10 +83,9 @@
         }
       }
       
-      if (result && !field.empty) {
+      if (result && field.empty === false) {
         result = target !== '';
       }
-      
       
       if (result && field.rules) {
         for (var i in field.rules) {
