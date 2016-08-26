@@ -16,6 +16,11 @@
         readOnly: true
       },
       
+      messages: {
+        type: Object,
+        readOnly: true
+      },
+      
       valid: {
         notify: true,
         type: Boolean,
@@ -52,32 +57,92 @@
       this.valid = false;
     },
     
-    validate: function (field, value) {
-      var result;
-      var field = this.fields[field];
+    validate: function (name, value, notRecheck) {
+      var result = true;
+      var field = this.fields[name];
       
       if (!field) {
         throw new Error("There is no rule for '" + field + "'");
       }
       
-      var target = this.data[field];
+      if (!this.validation[name]) {
+        this._unsetErrorMessage(name);
+      }
+      
+      var target = this.data[name];
       
       if (field.required) {
-        result = target !== undefined && target !== null;
+        result = target !== undefined && target !== null && target !== '';
+        
+        if (!result) {
+          this._setErrorMessage(name, 'required');
+        }
       }
       
       if (result && !field.empty) {
         result = target !== '';
       }
       
-      /* not rules implemented yet...
+      
       if (result && field.rules) {
         for (var i in field.rules) {
+          var rule = field.rules[i];
+          result = this._validateForRule(rule, target);
+          if (!result) {
+            this._setErrorMessage(name, rule);
+            break;
+          }
         }
       }
-      */
       
-      this.set('validation.' + field, result);
+      if (field.recheck && !notRecheck) {
+        this.validate(field.recheck, this.data[field.recheck], true);
+      }
+      
+      this._setValidation(name, result);
+    },
+    
+    forceInvalid: function (name, ruleForMsg) {
+      if (this.validation[name]) {
+        this._setValidation(name, false);
+        if (!ruleForMsg) {
+          this._unsetErrorMessage(name);
+        } else {
+          this._setErrorMessage(name, ruleForMsg);
+        }
+      }
+    },
+    
+    forceInvalidAll: function () {
+      for (var name in this.validation) {
+        if (this.validation[name]) {
+          this._setValidation(name, false);
+          this._unsetErrorMessage(name);
+        }
+      }
+    },
+    
+    _validateForRule: function (rule, target) {
+      if (this[rule] && typeof this[rule] === 'function') {
+        return this[rule](target);
+      }
+      console.warn('Trying to validate but no rule is found. [rule]:' + rule);
+      return true;
+    },
+    
+    _setValidation: function (name, value) {
+      this.set(['validation', name], value);
+      this.valid = this._validAll();
+    },
+    
+    _setErrorMessage: function (name, rule) {
+      if (this.messages && this.messages[name] && this.messages[name][rule]) {
+        this.set(['errorMessages', name], this.messages[name][rule]);
+      }
+    },
+    
+    _unsetErrorMessage: function (name) {
+      this.set(['errorMessages', name], '');
     },
     
     _validateByPath: function (data) {
@@ -85,8 +150,8 @@
       
       if (data.path === 'data') {
         Object.getOwnPropertyNames(this.fields).forEach(function (key) {
-          var value = this.get('data.' + key);
-          if (value) {
+          var value = this.get(['data', key]);
+          if (value !== undefined) {
             this.validate(key, value);
           }
         }.bind(this));
@@ -94,9 +159,8 @@
         matched = data.path.match('^data\.(.*)');
         var key = matched[1];
         var value = this.get(matched[0]);
-        if (this.fields.hasOwnProperty(key) && value) {
+        if (this.fields.hasOwnProperty(key) && value !== undefined) {
           this.validate(key, value);
-          this.valid = this._validAll();
         }
       }
     },
