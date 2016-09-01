@@ -16,7 +16,7 @@ If errors are occured, each error message can be visible and notify invalid fiel
 
 Here is an example of validator. It validates user profiles containing `firstName`, `lastName` and `phoneNumber`.
 The `firstName` and `lastName` are required, but `phoneNumber` is optional. If `phoneNumber` is set, validates with `isPhoneNumber` method.
-```
+```html
 <dom-module id="my-user-validator">
 
   <script>
@@ -64,7 +64,7 @@ The `firstName` and `lastName` are required, but `phoneNumber` is optional. If `
 ```
 
 After defining a validator, you can add it to the form element as a child.
-```
+```html
 <form>
   <my-user-validator
     data="[[data]]"
