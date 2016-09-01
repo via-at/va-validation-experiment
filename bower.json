@@ -1,5 +1,5 @@
 {
-  "name": "va-validation",
+  "name": "va-validation-experiment",
   "version": "0.0.1",
   "description": "A web component which supports data validation",
   "main": [
