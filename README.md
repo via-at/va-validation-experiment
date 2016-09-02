@@ -22,6 +22,9 @@ The `firstName` and `lastName` are required, but `phoneNumber` is optional. If `
   <script>
     Polymer({
       is: 'my-user-validator',
+      
+      behaviors: [VA.ValidationBehavior],
+      
       properties: {
         fields: {
           value: {
